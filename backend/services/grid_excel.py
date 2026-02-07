@@ -23,28 +23,84 @@ def _decode_base64_image(image_b64: str) -> np.ndarray:
 
 
 def _ocr_box(image: np.ndarray) -> int:
+    # 1. Grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # Resize first to give Tesseract more pixels to work with
+    # 2. Upscale for better contour detection
     scale = 2.0
     width = int(gray.shape[1] * scale)
     height = int(gray.shape[0] * scale)
     dim = (width, height)
     resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
 
-    # Otsu's thresholding
-    _, th = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    # 3. Threshold (Otsu) - Invert first to find white text on black background for contours
+    # But usually paper is white, text is black. 
+    # Thresholding: 
+    #   cv2.THRESH_BINARY_INV: Text becomes White, Background Black (Best for finding contours of text)
+    _, th_inv = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    # Add white border (padding) - Tesseract improvement
-    # 10px padding around the resized, thresholded image
-    th = cv2.copyMakeBorder(th, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
+    # 4. Find Contours
+    contours, _ = cv2.findContours(th_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Use PSM 10 (Treat the image as a single character) or 6 (Block)
-    # PSM 10 is often better for single digits/numbers in a small box
+    # 5. Filter Candidates
+    # If no contours found, it's empty
+    if not contours:
+        return 0
+
+    # Find largest contour by area (assuming it's the digit)
+    # Filter out very small noise
+    valid_contours = [c for c in contours if cv2.contourArea(c) > 50]
+    
+    if not valid_contours:
+        return 0
+        
+    largest_c = max(valid_contours, key=cv2.contourArea)
+    x, y, w, h = cv2.boundingRect(largest_c)
+    
+    # 6. Extract Digit and Center it
+    # ROI of the digit from the INVERTED text (White text, Black BG) or Original?
+    # Tesseract likes Black text on White background.
+    # So let's extract from the 'resized' (original gray scaled) but we need to threshold it 
+    # to be clean black/white first.
+    
+    # Let's get a clean black-text-white-bg version of the whole image first
+    _, th_clean = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    digit_roi = th_clean[y:y+h, x:x+w]
+    
+    # Create a square canvas to center the digit
+    # Size should be max(w, h) + padding
+    side = max(w, h) + 40 # 20px padding each side
+    canvas = np.ones((side, side), dtype=np.uint8) * 255 # White canvas
+    
+    # Center coordinates
+    c_x = side // 2
+    c_y = side // 2
+    
+    # Top-left dict
+    dx = c_x - w // 2
+    dy = c_y - h // 2
+    
+    # Paste digit
+    canvas[dy:dy+h, dx:dx+w] = digit_roi
+    
+    # Save debug image
+    import os
+    import time
+    debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
+    os.makedirs(debug_dir, exist_ok=True)
+    timestamp = int(time.time() * 1000)
+    # Use extensive filename to avoid collisions and know order
+    is_saved = cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", canvas)
+    print(f"[DEBUG] Saved crop to {debug_dir}/{timestamp}_debug.png: {is_saved}")
+
+    # 7. Final OCR
+    # PSM 10 is single char
     config = "--psm 10 -c tessedit_char_whitelist=0123456789"
     
     # Auto-detect tesseract if likely missing
     import shutil
+    import os
     if not shutil.which("tesseract"):
         possible_paths = [
             r"C:\Program Files\Tesseract-OCR\tesseract.exe",
@@ -57,7 +113,7 @@ def _ocr_box(image: np.ndarray) -> int:
                 break
 
     try:
-        text = pytesseract.image_to_string(th, config=config)
+        text = pytesseract.image_to_string(canvas, config=config)
         # print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
     except pytesseract.TesseractNotFoundError:
         print("[ERROR] Tesseract not found.")
