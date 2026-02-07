@@ -39,11 +39,20 @@ def _ocr_box(image: np.ndarray) -> int:
     # 10px padding around the resized, thresholded image
     th = cv2.copyMakeBorder(th, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
 
-    config = "--psm 6 -c tessedit_char_whitelist=0123456789"
+    # Save debug image
+    import os
+    import time
+    debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
+    os.makedirs(debug_dir, exist_ok=True)
+    timestamp = int(time.time() * 1000)
+    # Use extensive filename to avoid collisions and know order
+    is_saved = cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", th)
+    print(f"[DEBUG] Saved crop to {debug_dir}/{timestamp}_debug.png: {is_saved}")
+
+    config = "--psm 10 -c tessedit_char_whitelist=0123456789"
     
     # Auto-detect tesseract if likely missing
     import shutil
-    import os
     if not shutil.which("tesseract"):
         possible_paths = [
             r"C:\Program Files\Tesseract-OCR\tesseract.exe",
