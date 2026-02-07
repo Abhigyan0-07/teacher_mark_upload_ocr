@@ -52,10 +52,21 @@ const WebcamScannerPage: React.FC = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Draw video frame into canvas
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Crop to the central 2/3rds (matching the overlay)
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    
+    // Overlay is w-2/3 h-2/3
+    const cropWidth = vw * (2 / 3);
+    const cropHeight = vh * (2 / 3);
+    const startX = (vw - cropWidth) / 2;
+    const startY = (vh - cropHeight) / 2;
+
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+
+    // drawImage(image, sy, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+    ctx.drawImage(video, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     return canvas.toDataURL("image/png");
   };
