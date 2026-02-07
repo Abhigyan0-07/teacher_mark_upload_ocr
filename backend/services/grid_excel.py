@@ -40,37 +40,71 @@ def _ocr_box(image: np.ndarray) -> int:
     _, th_inv = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # 4. Find Contours
-    contours, _ = cv2.findContours(th_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Use RETR_LIST to find all contours, including those inside a border
+    contours, _ = cv2.findContours(th_inv, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     # 5. Filter Candidates
     # If no contours found, it's empty
     if not contours:
         return 0
 
-    # Find largest contour by area (assuming it's the digit)
     # Filter out very small noise
-    valid_contours = [c for c in contours if cv2.contourArea(c) > 50]
+    valid_contours = [c for c in contours if cv2.contourArea(c) > 20]
     
-    if not valid_contours:
+    # Filter out likely grid lines / borders
+    # 1. Touches edge?
+    # 2. Long and thin?
+    
+    final_contours = []
+    h_img, w_img = height, width
+    
+    for c in valid_contours:
+        x, y, w, h = cv2.boundingRect(c)
+        
+        # Check if touches edge (within 3px)
+        touches_edge = (x <= 3) or (y <= 3) or (x + w >= w_img - 3) or (y + h >= h_img - 3)
+        
+        # Check if long (spans > 50% of dimension)
+        spans_long = (w > 0.5 * w_img) or (h > 0.5 * h_img)
+        
+        if touches_edge and spans_long:
+            continue # Skip border line
+            
+        final_contours.append(c)
+    
+    if not final_contours:
         return 0
         
-    largest_c = max(valid_contours, key=cv2.contourArea)
-    x, y, w, h = cv2.boundingRect(largest_c)
+    # Find bounding box that encompasses ALL valid contours (for multi-digit support)
+    min_x, min_y = width, height
+    max_x, max_y = 0, 0
     
-    # 6. Extract Digit and Center it
-    # ROI of the digit from the INVERTED text (White text, Black BG) or Original?
-    # Tesseract likes Black text on White background.
-    # So let's extract from the 'resized' (original gray scaled) but we need to threshold it 
-    # to be clean black/white first.
+    # print(f"[DEBUG] Valid contours found: {len(final_contours)}")
+
+    for c in final_contours:
+        x, y, w, h = cv2.boundingRect(c)
+        min_x = min(min_x, x)
+        min_y = min(min_y, y)
+        max_x = max(max_x, x + w)
+        max_y = max(max_y, y + h)
+        
+    x, y = min_x, min_y
+    w = max_x - min_x
+    h = max_y - min_y
     
+    # 6. Extract ROI and Center it
     # Let's get a clean black-text-white-bg version of the whole image first
     _, th_clean = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     
+    # Sanity check
+    if w <= 0 or h <= 0:
+        return 0
+        
     digit_roi = th_clean[y:y+h, x:x+w]
     
-    # Create a square canvas to center the digit
+    # Create a square canvas to center the content
     # Size should be max(w, h) + padding
-    side = max(w, h) + 40 # 20px padding each side
+    side = max(w, h) + 40 # 20px padding
     canvas = np.ones((side, side), dtype=np.uint8) * 255 # White canvas
     
     # Center coordinates
@@ -81,22 +115,21 @@ def _ocr_box(image: np.ndarray) -> int:
     dx = c_x - w // 2
     dy = c_y - h // 2
     
-    # Paste digit
+    # Paste ROI
     canvas[dy:dy+h, dx:dx+w] = digit_roi
     
-    # Save debug image
-    import os
-    import time
-    debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
-    os.makedirs(debug_dir, exist_ok=True)
-    timestamp = int(time.time() * 1000)
-    # Use extensive filename to avoid collisions and know order
-    is_saved = cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", canvas)
-    print(f"[DEBUG] Saved crop to {debug_dir}/{timestamp}_debug.png: {is_saved}")
+    # Save debug image (Removed for production, can re-enable if needed)
+    # import os
+    # import time
+    # debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
+    # os.makedirs(debug_dir, exist_ok=True)
+    # timestamp = int(time.time() * 1000)
+    # cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", canvas)
 
     # 7. Final OCR
-    # PSM 10 is single char
-    config = "--psm 10 -c tessedit_char_whitelist=0123456789"
+    # PSM 7 = Treat the image as a single text line.
+    # PSM 10 = Single char (BAD for '15')
+    config = "--psm 7 -c tessedit_char_whitelist=0123456789"
     
     # Auto-detect tesseract if likely missing
     import shutil
@@ -114,7 +147,7 @@ def _ocr_box(image: np.ndarray) -> int:
 
     try:
         text = pytesseract.image_to_string(canvas, config=config)
-        # print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
+        print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
     except pytesseract.TesseractNotFoundError:
         print("[ERROR] Tesseract not found.")
         raise Exception("Tesseract OCR is not installed on the server. Please install it.")
@@ -124,7 +157,7 @@ def _ocr_box(image: np.ndarray) -> int:
         
     digits = "".join(ch for ch in text if ch.isdigit())
     val = int(digits) if digits else 0
-    # print(f"[DEBUG] Parsed value: {val}")
+    print(f"[DEBUG] Parsed value: {val}")
     return val
 
 
