@@ -39,16 +39,8 @@ def _ocr_box(image: np.ndarray) -> int:
     # 10px padding around the resized, thresholded image
     th = cv2.copyMakeBorder(th, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
 
-    # Save debug image
-    import os
-    import time
-    debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
-    os.makedirs(debug_dir, exist_ok=True)
-    timestamp = int(time.time() * 1000)
-    # Use extensive filename to avoid collisions and know order
-    is_saved = cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", th)
-    print(f"[DEBUG] Saved crop to {debug_dir}/{timestamp}_debug.png: {is_saved}")
-
+    # Use PSM 10 (Treat the image as a single character) or 6 (Block)
+    # PSM 10 is often better for single digits/numbers in a small box
     config = "--psm 10 -c tessedit_char_whitelist=0123456789"
     
     # Auto-detect tesseract if likely missing
@@ -66,7 +58,7 @@ def _ocr_box(image: np.ndarray) -> int:
 
     try:
         text = pytesseract.image_to_string(th, config=config)
-        print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
+        # print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
     except pytesseract.TesseractNotFoundError:
         print("[ERROR] Tesseract not found.")
         raise Exception("Tesseract OCR is not installed on the server. Please install it.")
@@ -76,7 +68,7 @@ def _ocr_box(image: np.ndarray) -> int:
         
     digits = "".join(ch for ch in text if ch.isdigit())
     val = int(digits) if digits else 0
-    print(f"[DEBUG] Parsed value: {val}")
+    # print(f"[DEBUG] Parsed value: {val}")
     return val
 
 
