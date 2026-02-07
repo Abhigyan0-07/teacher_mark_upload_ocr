@@ -24,7 +24,12 @@ const WebcamScannerPage: React.FC = () => {
   useEffect(() => {
     const start = async () => {
       try {
-        const media = await navigator.mediaDevices.getUserMedia({ video: true });
+        const media = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 1920 }, 
+                height: { ideal: 1080 } 
+            } 
+        });
         setStream(media);
         if (videoRef.current) {
           videoRef.current.srcObject = media;
@@ -252,10 +257,24 @@ const WebcamScannerPage: React.FC = () => {
                 
                 {/* ROI Overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div className="w-2/3 h-1/2 border-4 border-green-400 rounded-lg shadow-[0_0_15px_rgba(74,222,128,0.5)] bg-transparent">
+                    <div className="w-2/3 h-2/3 border-4 border-green-400 rounded-lg shadow-[0_0_15px_rgba(74,222,128,0.5)] bg-transparent relative">
+                        {/* 4x2 Grid Reference Lines */}
+                        <div className="absolute inset-0 flex flex-col">
+                            {/* Horizontal Lines (3 lines to make 4 rows) */}
+                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
+                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
+                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
+                            <div className="flex-1"></div>
+                        </div>
+                        <div className="absolute inset-0 flex">
+                            {/* Vertical Line (1 line to make 2 columns) */}
+                            <div className="flex-1 border-r border-green-400/30 border-dashed"></div>
+                            <div className="flex-1"></div>
+                        </div>
+
                         <div className="absolute -top-8 left-0 right-0 text-center">
                             <span className="bg-black/70 text-white text-xs px-2 py-1 rounded">
-                                Align Marks Grid Here
+                                Align Marks Grid Here (4 Rows x 2 Columns)
                             </span>
                         </div>
                     </div>

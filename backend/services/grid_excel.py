@@ -24,8 +24,21 @@ def _decode_base64_image(image_b64: str) -> np.ndarray:
 
 def _ocr_box(image: np.ndarray) -> int:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, th = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    th = cv2.resize(th, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_CUBIC)
+    
+    # Resize first to give Tesseract more pixels to work with
+    scale = 2.0
+    width = int(gray.shape[1] * scale)
+    height = int(gray.shape[0] * scale)
+    dim = (width, height)
+    resized = cv2.resize(gray, dim, interpolation=cv2.INTER_CUBIC)
+
+    # Otsu's thresholding
+    _, th = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Add white border (padding) - Tesseract improvement
+    # 10px padding around the resized, thresholded image
+    th = cv2.copyMakeBorder(th, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
+
     config = "--psm 6 -c tessedit_char_whitelist=0123456789"
     
     # Auto-detect tesseract if likely missing
@@ -44,17 +57,18 @@ def _ocr_box(image: np.ndarray) -> int:
 
     try:
         text = pytesseract.image_to_string(th, config=config)
+        print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
     except pytesseract.TesseractNotFoundError:
-        # Fallback or re-raise with clear message
-        # Since this is deep in service, we might just log or return 0, 
-        # but for the user to know, we should probably raise a specific exception 
-        # that the route handler can catch.
+        print("[ERROR] Tesseract not found.")
         raise Exception("Tesseract OCR is not installed on the server. Please install it.")
-    except Exception:
+    except Exception as e:
+        print(f"[ERROR] OCR failed: {e}")
         return 0
         
     digits = "".join(ch for ch in text if ch.isdigit())
-    return int(digits) if digits else 0
+    val = int(digits) if digits else 0
+    print(f"[DEBUG] Parsed value: {val}")
+    return val
 
 
 def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int]:
