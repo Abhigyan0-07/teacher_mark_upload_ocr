@@ -87,6 +87,8 @@ class GridScanResponse(BaseModel):
 def scan_grid_and_append_excel(
     image_base64: str = Body(..., embed=True),
     excel_file: str | None = Body(None, embed=True),
+    rows: int = Body(4, embed=True),
+    cols: int = Body(2, embed=True),
     _: dict = Depends(require_teacher),
 ):
     # excel_file comes as base64 string if provided
@@ -96,9 +98,9 @@ def scan_grid_and_append_excel(
             _, excel_file = excel_file.split(",", 1)
         excel_bytes = base64.b64decode(excel_file)
 
-    # 4 rows x 2 columns grid (adjust if your layout changes)
+    # Use provided rows/cols
     try:
-        marks = extract_grid_marks(image_base64, rows=4, cols=2)
+        marks = extract_grid_marks(image_base64, rows=rows, cols=cols)
     except Exception as e:
         if "Tesseract" in str(e):
              raise HTTPException(status_code=500, detail="Server Error: Tesseract OCR is not installed. Please install Tesseract-OCR to use scanning.")

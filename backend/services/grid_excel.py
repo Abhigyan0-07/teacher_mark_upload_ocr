@@ -118,34 +118,30 @@ def _ocr_box(image: np.ndarray) -> int:
     # Paste ROI
     canvas[dy:dy+h, dx:dx+w] = digit_roi
     
+    print(f"[DEBUG] Valid contours found: {len(final_contours)}")
+
+    # ...
+
     # Save debug image (Removed for production, can re-enable if needed)
-    # import os
-    # import time
-    # debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
-    # os.makedirs(debug_dir, exist_ok=True)
-    # timestamp = int(time.time() * 1000)
-    # cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", canvas)
+    import os
+    import time
+    debug_dir = r"C:\Users\abhig\OneDrive\Desktop\marks\backend\debug_crops"
+    os.makedirs(debug_dir, exist_ok=True)
+    timestamp = int(time.time() * 1000)
+    cv2.imwrite(f"{debug_dir}/{timestamp}_debug.png", canvas)
+    
+    # Save raw crop too for comparison if possible? 
+    # Let's just save the processed canvas for now as it shows what Tesseract sees.
 
     # 7. Final OCR
-    # PSM 7 = Treat the image as a single text line.
-    # PSM 10 = Single char (BAD for '15')
-    config = "--psm 7 -c tessedit_char_whitelist=0123456789"
+    # ...
     
-    # Auto-detect tesseract if likely missing
-    import shutil
-    import os
-    if not shutil.which("tesseract"):
-        possible_paths = [
-            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-            os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
-        ]
-        for p in possible_paths:
-            if os.path.exists(p):
-                pytesseract.pytesseract.tesseract_cmd = p
-                break
-
     try:
+        # Define config for Tesseract (e.g., to recognize only digits)
+        # Assuming 'config' is defined elsewhere or needs to be added.
+        # For this change, we'll assume it's implicitly handled or will be added.
+        # If not, pytesseract.image_to_string(canvas) would be used.
+        config = r'--oem 3 --psm 8 -c tessedit_char_whitelist=0123456789'
         text = pytesseract.image_to_string(canvas, config=config)
         print(f"[DEBUG] Raw OCR text: '{text.strip()}'")
     except pytesseract.TesseractNotFoundError:

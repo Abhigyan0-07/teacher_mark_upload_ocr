@@ -16,6 +16,8 @@ const WebcamScannerPage: React.FC = () => {
   const [excelFile, setExcelFile] = useState<File | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [excelInfo, setExcelInfo] = useState<string | null>(null);
+  const [rows, setRows] = useState(4);
+  const [cols, setCols] = useState(2);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -104,7 +106,15 @@ const WebcamScannerPage: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setExcelFile(e.target.files[0]);
+      setDownloadUrl(null); // Reset download link on new upload
+      setExcelInfo("Loaded custom Excel file.");
+    }
+  };
+  
   const handleScanToExcel = async () => {
     if (!videoRef.current || !canvasRef.current) return;
     setError(null);
@@ -121,6 +131,8 @@ const WebcamScannerPage: React.FC = () => {
       const res = await apiClient.post("/api/teacher/scan-grid-excel", {
         image_base64: dataUrl,
         excel_file: excelBase64,
+        rows: rows,
+        cols: cols
       });
       
       const { marks, total, excel_file } = res.data as {
@@ -151,30 +163,8 @@ const WebcamScannerPage: React.FC = () => {
       setLoading(false);
     }
   };
-  
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setExcelFile(e.target.files[0]);
-      setDownloadUrl(null); // Reset download link on new upload
-      setExcelInfo("Loaded custom Excel file.");
-    }
-  };
 
-  if (!state.examId || !state.studentId) {
-    return (
-      <div className="p-6">
-        <p className="text-red-600 text-sm mb-4">
-          Missing exam or student selection. Go back to Teacher Dashboard.
-        </p>
-        <button
-          onClick={() => navigate("/teacher")}
-          className="px-4 py-2 rounded-md bg-slate-800 text-white text-sm hover:bg-slate-900"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    );
-  }
+  // ... (existing code) ...
 
   return (
     <div className="space-y-6">
@@ -200,11 +190,48 @@ const WebcamScannerPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Excel Management */}
         <div className="lg:col-span-1 space-y-6">
+            
+            {/* Grid Configuration */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                 <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                    <span className="bg-green-100 text-green-700 p-1.5 rounded text-xs">1</span>
+                    <span className="bg-blue-100 text-blue-700 p-1.5 rounded text-xs">1</span>
+                    Grid Layout
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Rows</label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="10"
+                            value={rows}
+                            onChange={(e) => setRows(parseInt(e.target.value) || 4)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Columns</label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="6"
+                            value={cols}
+                            onChange={(e) => setCols(parseInt(e.target.value) || 2)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                    Adjust to match your physical marks sheet (e.g. 4x2 or 2x4).
+                </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span className="bg-green-100 text-green-700 p-1.5 rounded text-xs">2</span>
                     Excel Configuration
                 </h2>
+                {/* ... existing excel config code ... */}
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Master Excel Sheet</label>
@@ -269,23 +296,25 @@ const WebcamScannerPage: React.FC = () => {
                 {/* ROI Overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                     <div className="w-2/3 h-2/3 border-4 border-green-400 rounded-lg shadow-[0_0_15px_rgba(74,222,128,0.5)] bg-transparent relative">
-                        {/* 4x2 Grid Reference Lines */}
+                        {/* Dynamic Grid Reference Lines */}
                         <div className="absolute inset-0 flex flex-col">
-                            {/* Horizontal Lines (3 lines to make 4 rows) */}
-                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
-                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
-                            <div className="flex-1 border-b border-green-400/30 border-dashed"></div>
+                            {/* Horizontal Lines (rows - 1) */}
+                            {Array.from({ length: rows - 1 }).map((_, i) => (
+                                <div key={i} className="flex-1 border-b border-green-400/30 border-dashed"></div>
+                            ))}
                             <div className="flex-1"></div>
                         </div>
                         <div className="absolute inset-0 flex">
-                            {/* Vertical Line (1 line to make 2 columns) */}
-                            <div className="flex-1 border-r border-green-400/30 border-dashed"></div>
+                            {/* Vertical Lines (cols - 1) */}
+                            {Array.from({ length: cols - 1 }).map((_, i) => (
+                                <div key={i} className="flex-1 border-r border-green-400/30 border-dashed"></div>
+                            ))}
                             <div className="flex-1"></div>
                         </div>
 
                         <div className="absolute -top-8 left-0 right-0 text-center">
                             <span className="bg-black/70 text-white text-xs px-2 py-1 rounded">
-                                Align Marks Grid Here (4 Rows x 2 Columns)
+                                Align Marks Grid Here ({rows} Rows x {cols} Columns)
                             </span>
                         </div>
                     </div>
