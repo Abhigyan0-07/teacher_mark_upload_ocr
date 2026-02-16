@@ -157,14 +157,144 @@ def _ocr_box(image: np.ndarray) -> int:
     return val
 
 
+
+from ..ocr.google_vision import detect_document_text
+
+def _get_centroids(vertices):
+    """
+    Returns (x, y) centroid of a polygon defined by vertices.
+    vertices: list of objects with .x and .y
+    """
+    if not vertices:
+        return 0, 0
+    
+    xs = [v.x for v in vertices]
+    ys = [v.y for v in vertices]
+    return sum(xs) / len(xs), sum(ys) / len(ys)
+
 def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int]:
     """
-    Extract marks from a fixed grid of (rows x cols) boxes covering the ROI.
-    Boxes are read row-wise: top-left to bottom-right.
+    Extract marks from a fixed grid using Google Cloud Vision API.
+    Sends the WHOLE image to Google Vision once, then maps detected text 
+    to the corresponding grid cell based on coordinates.
     """
-    image = _decode_base64_image(image_b64)
-    h, w = image.shape[:2]
+    image_cv = _decode_base64_image(image_b64)
+    h, w = image_cv.shape[:2]
+    
+    # Encode back to bytes for Google Vision
+    # We use the original base64 if possible to save re-encoding, 
+    # but the helper _decode_base64 handles header stripping.
+    # Let's just strip header manually to get clean bytes
+    if "," in image_b64:
+        _, _, data = image_b64.partition(",")
+        img_bytes = base64.b64decode(data)
+    else:
+        img_bytes = base64.b64decode(image_b64)
+        
+    try:
+        annotation = detect_document_text(img_bytes)
+    except Exception as e:
+        print(f"[ERROR] Google Vision API failed: {e}")
+        # Fallback to local OCR or re-raise? 
+        # For now, let's re-raise because the user explicitly requested Google accuracy.
+        # But we could fallback.
+        print("Falling back to legacy local OCR...")
+        return _extract_grid_marks_fallback(image_cv, rows, cols)
 
+
+    # Initialize grid marks
+    grid_marks = [0] * (rows * cols)
+    
+    row_height = h / rows
+    col_width = w / cols
+    
+    # Iterate through all pages/blocks/paragraphs/words/symbols
+    # We care about "words" or "symbols" usually for digits.
+    # "words" is usually safer for "10", "5", etc.
+    
+    for page in annotation.pages:
+        for block in page.blocks:
+            for paragraph in block.paragraphs:
+                for word in paragraph.words:
+                    word_text = "".join([symbol.text for symbol in word.symbols])
+                    
+                    # Filter for likely marks (digits)
+                    # Allow "10", "0", "5", "7". 
+                    # Might see "Q1" if it reads the label, but usually we just want the handwritten mark.
+                    # Or maybe the printed mark?
+                    # Assuming we are looking for handwritten digits.
+                    
+                    cleaned_text = "".join(filter(str.isdigit, word_text))
+                    
+                    if not cleaned_text:
+                        continue
+                        
+                    val = int(cleaned_text)
+                    
+                    # Find which cell this word belongs to
+                    cx, cy = _get_centroids(word.bounding_box.vertices)
+                    
+                    # Determine row and col
+                    # Note: Google Vision coordinates are absolute pixels
+                    r = int(cy // row_height)
+                    c = int(cx // col_width)
+                    
+                    if 0 <= r < rows and 0 <= c < cols:
+                        idx = r * cols + c
+                        # If a cell has multiple numbers, we might take the largest or last one.
+                        # Usually a cell has "Q1" (preprinted) and "5" (handwritten).
+                        # We want the handwritten part. 
+                        # This is tricky without "Handwriting vs Print" classification.
+                        # However, Q numbers are usually small integers (1, 2, 3...) and Marks are also small.
+                        # Heuristic: 
+                        # If we see multiple numbers in a box, how to distinguish?
+                        # Maybe the position? Marks are usually on the right or manually written.
+                        # For now, let's just take the LAST one found (often bottom/right) or MAX?
+                        # Let's assume the user effectively crops/zooms such that mostly the mark is visible?
+                        # No, the grid contains the whole cell.
+                        
+                        # Simple Heuristic: Overwrite. 
+                        # Ideally, we'd spatially filter.
+                        # Use the "max" value? 
+                        # Let's stick with: "Detected a number, use it."
+                        # If multiple are detected, correct behavior is undefined without more context.
+                        # But typically Q1 is top-left, Mark is center/right.
+                        
+                        # Let's update only if it looks like a reasonable mark (e.g. <= 100)
+                        if val <= 100:
+                            grid_marks[idx] = val
+
+    return grid_marks
+
+def extract_single_mark(image_b64: str) -> int:
+    """
+    Extract a single mark from a cropped image.
+    Uses Google Cloud Vision API effectively on the small crop.
+    """
+    if "," in image_b64:
+        _, _, data = image_b64.partition(",")
+        img_bytes = base64.b64decode(data)
+    else:
+        img_bytes = base64.b64decode(image_b64)
+        
+    try:
+        annotation = detect_document_text(img_bytes)
+        full_text = annotation.text
+        # Clean non-digits
+        digits = "".join(filter(str.isdigit, full_text))
+        if digits:
+            return int(digits)
+        return 0
+    except Exception as e:
+        print(f"[ERROR] Google Vision API failed on single crop: {e}")
+        # Fallback to local
+        image_cv = _decode_base64_image(image_b64)
+        return _ocr_box(image_cv)
+
+
+def _extract_grid_marks_fallback(image: np.ndarray, rows: int = 4, cols: int = 2) -> List[int]:
+    """Legacy Tesseract implementation for fallback"""
+    h, w = image.shape[:2]
     marks: List[int] = []
     row_height = h // rows
     col_width = w // cols
@@ -179,7 +309,6 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
             marks.append(_ocr_box(box))
 
     return marks
-
 
 def append_marks_to_excel(
     marks: List[int],

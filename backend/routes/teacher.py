@@ -117,6 +117,43 @@ def scan_grid_and_append_excel(
     )
 
 
+@router.post("/scan-crop-excel", response_model=GridScanResponse)
+def scan_crop_and_append_excel(
+    image_base64: str = Body(..., embed=True),
+    excel_file: str | None = Body(None, embed=True),
+    _: dict = Depends(require_teacher),
+):
+    # excel_file comes as base64 string if provided
+    excel_bytes = None
+    if excel_file:
+        if "," in excel_file:
+            _, excel_file = excel_file.split(",", 1)
+        excel_bytes = base64.b64decode(excel_file)
+
+    from ..services.grid_excel import extract_single_mark
+    
+    # Run OCR on single crop
+    try:
+        mark = extract_single_mark(image_base64)
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"OCR Error: {str(e)}")
+
+    # Append as a single row [mark]
+    # Note: If existing logic blindly sums, it works: sum([mark]) = mark
+    marks_list = [mark]
+    
+    total, updated_excel_bytes = append_marks_to_excel(marks_list, excel_content=excel_bytes)
+    
+    updated_excel_b64 = base64.b64encode(updated_excel_bytes).decode("utf-8")
+    
+    return GridScanResponse(
+        marks=marks_list, 
+        total=total, 
+        excel_file=updated_excel_b64
+    )
+
+
+
 @router.post("/submit-marks")
 def submit_marks(
     payload: SubmitMarksRequest,
