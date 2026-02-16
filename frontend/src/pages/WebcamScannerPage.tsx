@@ -77,26 +77,12 @@ const WebcamScannerPage: React.FC = () => {
             return fullImage;
         }
 
-        // For Auto Mode, we might still crop to center as before, 
-        // OR just send the whole thing and let the backend handle it?
-        // The previous code cropped centrally. Let's keep that behavior for consistency if Auto.
-        // Re-implementing the central crop for Auto for now:
-        const vw = video.videoWidth;
-        const vh = video.videoHeight;
-        const cropWidth = vw * (2 / 3);
-        const cropHeight = vh * (2 / 3);
-        const startX = (vw - cropWidth) / 2;
-        const startY = (vh - cropHeight) / 2;
-        
-        const cropCanvas = document.createElement('canvas');
-        cropCanvas.width = cropWidth;
-        cropCanvas.height = cropHeight;
-        const cropCtx = cropCanvas.getContext('2d');
-        if(cropCtx) {
-            cropCtx.drawImage(video, startX, startY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-            return cropCanvas.toDataURL("image/png");
-        }
-        return fullImage; // Fallback
+        // For Auto Mode:
+        // PREVIOUSLY: We cropped to the center 2/3.
+        // PROBLEM: If the user wasn't perfectly aligned, we cut off numbers.
+        // FIX: Send the FULL video frame. The backend's "Smart Sort" is robust enough 
+        // to find the grid structure in the full image, provided the background isn't full of numbers.
+        return fullImage;
     };
 
     const fileToBase64 = (file: File): Promise<string> => {
@@ -442,9 +428,12 @@ const WebcamScannerPage: React.FC = () => {
                                         <button
                                             onClick={handleManualCropScan}
                                             disabled={!completedCrop || completedCrop.width === 0 || loading}
-                                            className="flex-1 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                            className="flex-1 px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
                                         >
-                                            Scan Selection
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            Scan Selected Box
                                         </button>
                                     </>
                                 )}
@@ -453,8 +442,11 @@ const WebcamScannerPage: React.FC = () => {
                     </div>
                     
                     {excelInfo && (
-                        <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-4 py-3 rounded-md text-sm">
-                            {excelInfo}
+                        <div className="bg-green-100 border-2 border-green-500 text-green-900 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="font-semibold text-lg">{excelInfo}</div>
                         </div>
                     )}
                 </div>

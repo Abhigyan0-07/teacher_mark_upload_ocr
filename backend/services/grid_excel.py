@@ -172,6 +172,34 @@ def _get_centroids(vertices):
     ys = [v.y for v in vertices]
     return sum(xs) / len(xs), sum(ys) / len(ys)
 
+# Configure logging
+import logging
+import sys
+
+# Create a custom logger
+logger = logging.getLogger("backend_debug")
+logger.setLevel(logging.DEBUG)
+
+# Check if handlers already exist to avoid duplicates
+if not logger.handlers:
+    # File Handler
+    fh = logging.FileHandler('backend_debug.log')
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    # Stream Handler (stdout)
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.DEBUG)
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
+
+# Use 'logger' instead of 'logging' in the rest of the file
+# We'll need to update calls, or just alias logging=logger (risky but quick)
+# Better to just use 'logger' global.
+
+
 def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int]:
     """
     Extract marks from a fixed grid using Google Cloud Vision API.
@@ -180,11 +208,9 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
     """
     image_cv = _decode_base64_image(image_b64)
     h, w = image_cv.shape[:2]
+    logger.info(f"Processing image: {w}x{h}, Rows={rows}, Cols={cols}")
     
     # Encode back to bytes for Google Vision
-    # We use the original base64 if possible to save re-encoding, 
-    # but the helper _decode_base64 handles header stripping.
-    # Let's just strip header manually to get clean bytes
     if "," in image_b64:
         _, _, data = image_b64.partition(",")
         img_bytes = base64.b64decode(data)
@@ -194,10 +220,8 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
     try:
         annotation = detect_document_text(img_bytes)
     except Exception as e:
+        logger.error(f"Google Vision API failed: {e}")
         print(f"[ERROR] Google Vision API failed: {e}")
-        # Fallback to local OCR or re-raise? 
-        # For now, let's re-raise because the user explicitly requested Google accuracy.
-        # But we could fallback.
         print("Falling back to legacy local OCR...")
         return _extract_grid_marks_fallback(image_cv, rows, cols)
 
@@ -208,63 +232,253 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
     row_height = h / rows
     col_width = w / cols
     
-    # Iterate through all pages/blocks/paragraphs/words/symbols
-    # We care about "words" or "symbols" usually for digits.
-    # "words" is usually safer for "10", "5", etc.
+    found_marks = [] # List of {'val': int, 'x': float, 'y': float} 
     
+    # Iterate through all pages/blocks/paragraphs/words/symbols
     for page in annotation.pages:
         for block in page.blocks:
             for paragraph in block.paragraphs:
                 for word in paragraph.words:
                     word_text = "".join([symbol.text for symbol in word.symbols])
                     
-                    # Filter for likely marks (digits)
-                    # Allow "10", "0", "5", "7". 
-                    # Might see "Q1" if it reads the label, but usually we just want the handwritten mark.
-                    # Or maybe the printed mark?
-                    # Assuming we are looking for handwritten digits.
-                    
+                    # Clean the text
+                    # If text contains non-digits, clean them.
                     cleaned_text = "".join(filter(str.isdigit, word_text))
-                    
                     if not cleaned_text:
                         continue
                         
                     val = int(cleaned_text)
                     
-                    # Find which cell this word belongs to
-                    cx, cy = _get_centroids(word.bounding_box.vertices)
+                    # Get bounding box
+                    vertices = word.bounding_box.vertices
+                    cx, cy = _get_centroids(vertices)
                     
-                    # Determine row and col
-                    # Note: Google Vision coordinates are absolute pixels
-                    r = int(cy // row_height)
-                    c = int(cx // col_width)
+                    # Logic: 
+                    # If val <= 100, assume it's a single mark.
+                    # If val > 100 (e.g. 547, 105), it's likely merged digits.
+                    # Exception: 100 is valid.
                     
-                    if 0 <= r < rows and 0 <= c < cols:
-                        idx = r * cols + c
-                        # If a cell has multiple numbers, we might take the largest or last one.
-                        # Usually a cell has "Q1" (preprinted) and "5" (handwritten).
-                        # We want the handwritten part. 
-                        # This is tricky without "Handwriting vs Print" classification.
-                        # However, Q numbers are usually small integers (1, 2, 3...) and Marks are also small.
-                        # Heuristic: 
-                        # If we see multiple numbers in a box, how to distinguish?
-                        # Maybe the position? Marks are usually on the right or manually written.
-                        # For now, let's just take the LAST one found (often bottom/right) or MAX?
-                        # Let's assume the user effectively crops/zooms such that mostly the mark is visible?
-                        # No, the grid contains the whole cell.
+                    if val <= 100:
+                        logger.debug(f"Found Mark: {val} at ({cx}, {cy})")
+                        found_marks.append({'val': val, 'x': cx, 'y': cy})
+                    else:
+                        # Split! "547" -> 5, 4, 7
+                        logger.debug(f"Splitting merged value: {val} at ({cx}, {cy})")
+                        s_val = str(val)
+                        n_chars = len(s_val)
                         
-                        # Simple Heuristic: Overwrite. 
-                        # Ideally, we'd spatially filter.
-                        # Use the "max" value? 
-                        # Let's stick with: "Detected a number, use it."
-                        # If multiple are detected, correct behavior is undefined without more context.
-                        # But typically Q1 is top-left, Mark is center/right.
+                        # Interpolate X coordinates
+                        # Approximate width of the word box
+                        min_x = min([v.x for v in vertices])
+                        max_x = max([v.x for v in vertices])
+                        width = max_x - min_x
+                        char_width = width / n_chars
                         
-                        # Let's update only if it looks like a reasonable mark (e.g. <= 100)
-                        if val <= 100:
-                            grid_marks[idx] = val
+                        for i, char in enumerate(s_val):
+                            digit = int(char)
+                            # Estimate center of this char
+                            char_cx = min_x + (i * char_width) + (char_width / 2)
+                            
+                            logger.debug(f"  -> Split: {digit} at ({char_cx}, {cy})")
+                            found_marks.append({'val': digit, 'x': char_cx, 'y': cy})
+
+    # --- SMART GRID LOGIC ---
+    total_cells = rows * cols
+    logger.info(f"Total candidates found: {len(found_marks)}. Expected: {total_cells}")
+    
+    if len(found_marks) >= total_cells:
+        logger.info("Sufficient candidates found. Using Smart Clustering.")
+        try:
+            return _smart_grid_cluster(found_marks, rows, cols, h, w)
+        except Exception as e:
+            logger.error(f"Smart Clustering failed: {e}")
+
+    logger.warning("Mismatch or Clustering Failed. Falling back to Rigid Grid.")
+    logger.debug(f"[DEBUG] Mismatch (Found {len(found_marks)} vs Expected {total_cells}). Fallback to Rigid Grid.")
+    
+    # Case B: Standard Rigid Grid Mapping (Fallback)
+    grid_marks = [0] * total_cells
+    
+    for item in found_marks:
+        val = item['val']
+        cx = item['x']
+        cy = item['y']
+        
+        r = int(cy // row_height)
+        c = int(cx // col_width)
+        
+        logger.debug(f"Mapping {val} at ({cx}, {cy}) to Cell [{r}, {c}]")
+        
+        if 0 <= r < rows and 0 <= c < cols:
+            idx = r * cols + c
+            grid_marks[idx] = val
 
     return grid_marks
+
+def _smart_grid_cluster(candidates: List[dict], rows: int, cols: int, img_h: int, img_w: int) -> List[int]:
+    """
+    Robustly maps a list of candidate points {'val', 'x', 'y'} to a grid.
+    Handles cases where len(candidates) >= rows * cols (noise, labels).
+    Uses 1D clustering on Y then X.
+    """
+    logger.info(f"Smart Clustering: {len(candidates)} candidates for {rows}x{cols} grid")
+    
+    # 1. Cluster Rows (Y-axis)
+    # Sort by Y
+    by_y = sorted(candidates, key=lambda k: k['y'])
+    
+    # Simple Gap Detection
+    # Iterate and split if gap > threshold
+    # Threshold heuristic: The image is divided into 'rows'. 
+    # A gap between rows should be at least (img_h / rows) * 0.3
+    row_gap_thresh = (img_h / rows) * 0.3
+    
+    current_row = [by_y[0]]
+    row_groups = []
+    
+    for i in range(1, len(by_y)):
+        curr = by_y[i]
+        prev = by_y[i-1]
+        gap = curr['y'] - prev['y']
+        
+        if gap > row_gap_thresh:
+            # New row
+            row_groups.append(current_row)
+            current_row = [curr]
+        else:
+            current_row.append(curr)
+    row_groups.append(current_row)
+    
+    logger.info(f"  -> Found {len(row_groups)} vertical clusters (rows). Expected {rows}.")
+    
+    # Heuristic: If we found more rows than expected, merge small/close ones or take largest?
+    # If we found fewer, we might have merged two rows.
+    # For now, let's try to map strictly if count matches, otherwise picking best matches.
+    
+    # Filter Row Groups:
+    # If we have > rows, we might have noise at top/bottom.
+    # Sort groups by size (number of elements)? No, valid rows might be sparse.
+    # Sort groups by average Y and pick the ones that align with expected rigid lines?
+    # Let's simple-sort by Centroid Y and take the top 'rows' groups if they look valid?
+    # Better: Re-Assign based on rigid expectations if clustering fails?
+    # Let's stick to the gaps. If we have > rows, merge the closest ones?
+    
+    # If we have too many row groups, take the ones that contain the most items?
+    if len(row_groups) > rows:
+        row_groups.sort(key=lambda g: len(g), reverse=True)
+        row_groups = row_groups[:rows]
+        # Re-sort by Y
+        row_groups.sort(key=lambda g: sum(i['y'] for i in g)/len(g))
+        
+    final_grid = [0] * (rows * cols)
+    
+    for r_idx, r_group in enumerate(row_groups):
+        if r_idx >= rows: break
+        
+        # 2. Cluster Cols (X-axis) within this row
+        by_x = sorted(r_group, key=lambda k: k['x'])
+        
+        col_gap_thresh = (img_w / cols) * 0.3
+        
+        col_groups = []
+        curr_col = [by_x[0]]
+        
+        for i in range(1, len(by_x)):
+            curr = by_x[i]
+            prev = by_x[i-1]
+            gap = curr['x'] - prev['x']
+            
+            if gap > col_gap_thresh:
+                col_groups.append(curr_col)
+                curr_col = [curr]
+            else:
+                curr_col.append(curr)
+        col_groups.append(curr_col)
+        
+        # Taking top 'cols' groups
+        if len(col_groups) > cols:
+             # Sort by X position to pick "left, middle, right" logic? 
+             # No, if we have extra, it might be "Label Value".
+             # If "Label Value" (gap small), they are in SAME group.
+             # If "Value Value" (gap large), different groups.
+             
+             # If we have too many distinct column groups, filtering is tricky.
+             # Assume taking the ones with best X-alignment?
+             pass
+             
+        # Map to valid columns
+        # For each group, determine its column index based on image width
+        for c_group in col_groups:
+            # Determine representative X
+            avg_x = sum(i['x'] for i in c_group) / len(c_group)
+            
+            # Map avg_x to column index semi-rigidly relative to image width
+            # (Just to assign valid slot)
+            c_idx = int(avg_x / (img_w / cols))
+            if c_idx >= cols: c_idx = cols - 1
+            
+            # Use the item in the group.
+            # If multiple items in one column group (e.g. "Q1" "5" very close),
+            # pick the RIGHTMOST one (Marks usually follow labels)
+            # OR pick the distinct value <= 100
+            
+            # Sort by X descending
+            c_group.sort(key=lambda k: k['x'], reverse=True)
+            chosen_val = c_group[0]['val'] # Rightmost
+            
+            flat_idx = r_idx * cols + c_idx
+            final_grid[flat_idx] = chosen_val
+            logger.debug(f"    -> Mapped val {chosen_val} to [{r_idx},{c_idx}]")
+
+    return final_grid
+
+
+# Regex to find numbers, ignoring common labels
+import re
+
+def _clean_and_find_mark(text: str) -> int | None:
+    """
+    Heuristic to find the most likely mark in a text string.
+    1. Ignores "Q1", "No.1", etc.
+    2. Looks for standalone numbers.
+    3. Returns the valid mark (<= 100) if found.
+    """
+    # Replace common non-digit chars that might be confused or attached
+    # e.g. "5/10" -> "5 10"
+    text = text.replace("/", " ").replace("|", " ")
+    
+    # Find all number-like tokens
+    # This finds "1", "10", "Q1" (we'll filter Q1 later)
+    tokens = re.findall(r'[a-zA-Z]*\d+', text)
+    
+    candidates = []
+    for token in tokens:
+        # If it starts with Q or No, ignore (e.g. Q1, No5)
+        if re.match(r'^[qQnN]\d+', token):
+            continue
+            
+        # Clean to just digits
+        digits = "".join(filter(str.isdigit, token))
+        if not digits:
+            continue
+            
+        val = int(digits)
+        # Marks are usually 0-100
+        if 0 <= val <= 100:
+            candidates.append(val)
+            
+    if not candidates:
+        return None
+        
+    # If multiple candidates?
+    # e.g. "10 (2)" -> [10, 2]. Usually the mark is the main number.
+    # e.g. "Q1 5" -> "5" (Q1 filtered).
+    # If we have [10, 2], it's ambiguous. But often the mark is the largest or the last one?
+    # Or maybe the one that is NOT the question number.
+    # Let's take the LAST one, assuming user writes mark at end or right side?
+    # Or return the MAX?
+    # Let's return the one that looks most like a mark.
+    return candidates[-1]
 
 def extract_single_mark(image_b64: str) -> int:
     """
@@ -276,15 +490,17 @@ def extract_single_mark(image_b64: str) -> int:
         img_bytes = base64.b64decode(data)
     else:
         img_bytes = base64.b64decode(image_b64)
-        
+    
     try:
         annotation = detect_document_text(img_bytes)
-        full_text = annotation.text
-        # Clean non-digits
-        digits = "".join(filter(str.isdigit, full_text))
-        if digits:
-            return int(digits)
+        full_text = annotation.text or ""
+        print(f"[DEBUG] Manual Crop Text: {full_text}")
+        
+        val = _clean_and_find_mark(full_text)
+        if val is not None:
+            return val
         return 0
+        
     except Exception as e:
         print(f"[ERROR] Google Vision API failed on single crop: {e}")
         # Fallback to local
@@ -292,23 +508,116 @@ def extract_single_mark(image_b64: str) -> int:
         return _ocr_box(image_cv)
 
 
+from pytesseract import Output
+
 def _extract_grid_marks_fallback(image: np.ndarray, rows: int = 4, cols: int = 2) -> List[int]:
-    """Legacy Tesseract implementation for fallback"""
+    """
+    Legacy Tesseract implementation UPGRADED with Smart Sort.
+    Uses image_to_data on full image instead of slicing,
+    then applies the same spatial logic.
+    """
     h, w = image.shape[:2]
-    marks: List[int] = []
-    row_height = h // rows
-    col_width = w // cols
+    logger.info(f"[Fallback] Processing image: {w}x{h}, Rows={rows}, Cols={cols}")
+    
+    # Preprocess for Tesseract
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Adaptive Threshold (better for shadows/uneven lighting)
+    # Block size 31 (larger) to not break thin lines of large digits
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+    
+    # Optional: Morphological opening to remove small noise
+    kernel = np.ones((1,1), np.uint8)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    
+    # Run Tesseract on FULL image to get boxes
+    # PSM 11 = Sparse text. Find as much text as possible in no particular order.
+    # OEM 3 = Default (LSTM + Legacy)
+    custom_config = r'--oem 3 --psm 11 outputbase digits' 
+    
+    logger.info(f"[Fallback-Debug] Running Tesseract with config: {custom_config}")
+    
+    try:
+        d = pytesseract.image_to_data(thresh, config=custom_config, output_type=Output.DICT)
+    except Exception as e:
+        logger.error(f"[ERROR] Tesseract failed: {e}")
+        return [0] * (rows * cols)
 
-    for r in range(rows):
-        for c in range(cols):
-            y1 = r * row_height
-            y2 = (r + 1) * row_height if r < rows - 1 else h
-            x1 = c * col_width
-            x2 = (c + 1) * col_width if c < cols - 1 else w
-            box = image[y1:y2, x1:x2]
-            marks.append(_ocr_box(box))
+    found_marks = []
+    
+    n_boxes = len(d['text'])
+    logger.info(f"[Fallback-Debug] Tesseract found {n_boxes} potential text blocks.")
+    
+    for i in range(n_boxes):
+        conf = int(d['conf'][i])
+        text = d['text'][i].strip()
+        
+        # Log EVERYTHING
+        # logger.debug(f"[Fallback-Debug] Raw Box {i}: '{text}' (conf={conf})")
+        
+        if text:
+            # Clean
+            clean_text = "".join(filter(str.isdigit, text))
+            if not clean_text:
+                logger.info(f"[Fallback-Debug] Ignored non-digit: '{text}' (conf={conf})")
+                continue
+                
+            val = int(clean_text)
+            x, y, w_box, h_box = d['left'][i], d['top'][i], d['width'][i], d['height'][i]
+            cx = x + w_box / 2
+            cy = y + h_box / 2
+            
+            logger.info(f"[Fallback-Debug] Found Candidate: {val} (raw='{text}', conf={conf}) at ({cx:.1f}, {cy:.1f})")
+            
+            # Logic: Split if merged
+            if val <= 100:
+                found_marks.append({'val': val, 'x': cx, 'y': cy})
+            else:
+                # Split merged digits (e.g. 547 -> 5, 4, 7)
+                logger.info(f"[Fallback-Debug] Splitting merged: {val}")
+                s_val = str(val)
+                n_chars = len(s_val)
+                char_width = w_box / n_chars
+                
+                for k, char in enumerate(s_val):
+                    digit = int(char)
+                    char_cx = x + (k * char_width) + (char_width / 2)
+                    found_marks.append({'val': digit, 'x': char_cx, 'y': cy})
 
-    return marks
+
+    # --- SHARED SMART GRID LOGIC ---
+    # Case A: Sufficient candidates found
+    total_cells = rows * cols
+    logger.info(f"[Fallback] Found {len(found_marks)} candidates. Expected: {total_cells}")
+    
+    if len(found_marks) >= total_cells:
+        logger.info("[Fallback] Sufficient candidates found. Using Smart Clustering.")
+        try:
+            return _smart_grid_cluster(found_marks, rows, cols, h, w)
+        except Exception as e:
+            logger.error(f"Smart Clustering failed: {e}")
+            # Fall through to rigid grid
+    
+    # Case B: Rigid Fallback
+    logger.warning("[Fallback] Mismatch or Clustering Failed. Using Rigid Grid.")
+    
+    grid_marks = [0] * total_cells
+    row_height = h / rows
+    col_width = w / cols
+
+    for item in found_marks:
+        val = item['val']
+        cx = item['x']
+        cy = item['y']
+        
+        r = int(cy // row_height)
+        c = int(cx // col_width)
+        
+        if 0 <= r < rows and 0 <= c < cols:
+            idx = r * cols + c
+            grid_marks[idx] = val
+
+    return grid_marks
 
 def append_marks_to_excel(
     marks: List[int],

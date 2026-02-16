@@ -1,0 +1,131 @@
+--- Found 130 relevant log lines ---
+2026-02-16 20:55:29,062 Processing image: 853x480, Rows=4, Cols=2
+2026-02-16 20:55:40,919 [Fallback] Processing image: 853x480, Rows=4, Cols=2
+2026-02-16 20:55:41,303 [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 20:55:58,781 Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 20:56:10,917 [Fallback] Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 20:56:11,063 [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:03:11,412 Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 21:03:23,222 [Fallback] Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 21:03:23,456 [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:05:32,094 Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 21:05:44,034 [Fallback] Processing image: 853x480, Rows=3, Cols=3
+2026-02-16 21:05:44,452 [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:10:53,402 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:11:05,435 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:11:05,497 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:11:06,121 - INFO - [Fallback-Debug] Tesseract found 13 potential text blocks.
+2026-02-16 21:11:06,122 - INFO - [Fallback-Debug] Found Candidate: 2 at (248.5, 161.0)
+2026-02-16 21:11:06,125 - INFO - [Fallback-Debug] Found Candidate: 54 at (683.5, 300.0)
+2026-02-16 21:11:06,126 - INFO - [Fallback-Debug] Found Candidate: 2042 at (773.0, 362.0)
+2026-02-16 21:11:06,127 - INFO - [Fallback-Debug] Splitting merged: 2042
+2026-02-16 21:11:06,135 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:11:20,794 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:11:32,849 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:11:32,876 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:11:33,300 - INFO - [Fallback-Debug] Tesseract found 17 potential text blocks.
+2026-02-16 21:11:33,303 - INFO - [Fallback-Debug] Found Candidate: 2 at (152.0, 216.5)
+2026-02-16 21:11:33,311 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:15:08,065 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:15:20,305 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:15:20,381 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:15:21,270 - INFO - [Fallback-Debug] Tesseract found 45 potential text blocks.
+2026-02-16 21:15:21,272 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3.', conf=5) at (256.5, 207.0)
+2026-02-16 21:15:21,274 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3', conf=0) at (328.5, 239.5)
+2026-02-16 21:15:21,276 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (1200.5, 268.0)
+2026-02-16 21:15:21,278 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=2)
+2026-02-16 21:15:21,280 - INFO - [Fallback-Debug] Found Candidate: 1 (raw='1', conf=1) at (1161.5, 316.5)
+2026-02-16 21:15:21,282 - INFO - [Fallback-Debug] Found Candidate: 6 (raw='6', conf=36) at (636.0, 412.0)
+2026-02-16 21:15:21,284 - INFO - [Fallback-Debug] Ignored non-digit: '..-' (conf=0)
+2026-02-16 21:15:21,285 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2', conf=21) at (622.0, 530.5)
+2026-02-16 21:15:21,287 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:15:21,290 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:15:21,293 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3-.', conf=0) at (621.0, 713.5)
+2026-02-16 21:15:21,297 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:15:33,409 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:15:45,375 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:15:45,454 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:15:46,195 - INFO - [Fallback-Debug] Tesseract found 13 potential text blocks.
+2026-02-16 21:15:46,207 - INFO - [Fallback-Debug] Found Candidate: 8 (raw='8', conf=6) at (367.0, 91.0)
+2026-02-16 21:15:46,220 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:15:46,232 - INFO - [Fallback-Debug] Found Candidate: 45 (raw='45', conf=38) at (177.0, 628.0)
+2026-02-16 21:15:46,262 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:15:56,113 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:16:08,171 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:16:08,219 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:16:08,797 - INFO - [Fallback-Debug] Tesseract found 29 potential text blocks.
+2026-02-16 21:16:08,800 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=0) at (283.0, 17.0)
+2026-02-16 21:16:08,802 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (296.0, 101.0)
+2026-02-16 21:16:08,804 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:16:08,805 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (785.5, 314.5)
+2026-02-16 21:16:08,806 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (1236.5, 378.5)
+2026-02-16 21:16:08,807 - INFO - [Fallback-Debug] Found Candidate: 23 (raw='23.', conf=20) at (663.0, 399.0)
+2026-02-16 21:16:08,809 - INFO - [Fallback-Debug] Found Candidate: 0 (raw='0', conf=0) at (795.5, 484.5)
+2026-02-16 21:16:08,813 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:16:31,541 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:16:43,434 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:16:43,478 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:16:44,198 - INFO - [Fallback-Debug] Tesseract found 65 potential text blocks.
+2026-02-16 21:16:44,205 - INFO - [Fallback-Debug] Found Candidate: 33 (raw='33', conf=43) at (423.0, 182.0)
+2026-02-16 21:16:44,211 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:16:44,212 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=47) at (337.5, 309.5)
+2026-02-16 21:16:44,215 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (1059.0, 298.5)
+2026-02-16 21:16:44,217 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:16:44,218 - INFO - [Fallback-Debug] Found Candidate: 2320 (raw='2320', conf=20) at (719.5, 382.0)
+2026-02-16 21:16:44,221 - INFO - [Fallback-Debug] Splitting merged: 2320
+2026-02-16 21:16:44,224 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=21) at (235.0, 406.5)
+2026-02-16 21:16:44,225 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:16:44,227 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=73) at (973.0, 400.0)
+2026-02-16 21:16:44,228 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:16:44,230 - INFO - [Fallback-Debug] Ignored non-digit: '-.' (conf=0)
+2026-02-16 21:16:44,237 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (906.5, 637.0)
+2026-02-16 21:16:44,241 - INFO - [Fallback-Debug] Found Candidate: 27 (raw='27..', conf=0) at (61.0, 654.0)
+2026-02-16 21:16:44,245 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3.', conf=15) at (466.5, 667.5)
+2026-02-16 21:16:44,248 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=0) at (1166.0, 672.0)
+2026-02-16 21:16:44,249 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='.4', conf=0) at (248.5, 704.0)
+2026-02-16 21:16:44,254 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:17:53,883 - INFO - Processing image: 1280x720, Rows=4, Cols=2
+2026-02-16 21:18:05,818 - INFO - [Fallback] Processing image: 1280x720, Rows=4, Cols=2
+2026-02-16 21:18:05,870 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:18:06,608 - INFO - [Fallback-Debug] Tesseract found 49 potential text blocks.
+2026-02-16 21:18:06,609 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:18:06,610 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=17) at (478.0, 209.5)
+2026-02-16 21:18:06,611 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3', conf=0) at (536.5, 322.0)
+2026-02-16 21:18:06,612 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3', conf=33) at (1116.0, 357.0)
+2026-02-16 21:18:06,613 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (851.0, 380.0)
+2026-02-16 21:18:06,613 - INFO - [Fallback-Debug] Found Candidate: 96 (raw='96', conf=0) at (888.0, 419.5)
+2026-02-16 21:18:06,614 - INFO - [Fallback-Debug] Found Candidate: 4008 (raw='4008.', conf=19) at (869.0, 462.0)
+2026-02-16 21:18:06,616 - INFO - [Fallback-Debug] Splitting merged: 4008
+2026-02-16 21:18:06,618 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:18:06,619 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (171.5, 532.5)
+2026-02-16 21:18:06,622 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7.', conf=0) at (1144.5, 667.5)
+2026-02-16 21:18:06,625 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:18:06,626 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='.4', conf=0) at (453.5, 701.5)
+2026-02-16 21:18:06,628 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:18:47,859 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:18:59,963 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:19:00,053 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:19:00,952 - INFO - [Fallback-Debug] Tesseract found 89 potential text blocks.
+2026-02-16 21:19:00,954 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3', conf=16) at (31.0, 36.5)
+2026-02-16 21:19:00,956 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (670.5, 51.0)
+2026-02-16 21:19:00,958 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2', conf=0) at (535.5, 76.5)
+2026-02-16 21:19:00,963 - INFO - [Fallback-Debug] Found Candidate: 8 (raw='8', conf=0) at (827.0, 86.5)
+2026-02-16 21:19:00,969 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=27) at (1082.0, 85.0)
+2026-02-16 21:19:00,973 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=0) at (92.0, 140.0)
+2026-02-16 21:19:00,977 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=33) at (794.5, 166.5)
+2026-02-16 21:19:00,985 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3', conf=0) at (875.0, 197.0)
+2026-02-16 21:19:00,997 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (1033.5, 214.0)
+2026-02-16 21:19:01,003 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:19:01,011 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2', conf=35) at (939.0, 228.0)
+2026-02-16 21:19:01,018 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=47) at (469.0, 246.5)
+2026-02-16 21:19:01,024 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=11) at (647.5, 258.5)
+2026-02-16 21:19:01,029 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=0) at (1051.5, 261.5)
+2026-02-16 21:19:01,036 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:19:01,039 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2', conf=24) at (1108.0, 300.5)
+2026-02-16 21:19:01,044 - INFO - [Fallback-Debug] Found Candidate: 0 (raw='.0', conf=0) at (544.5, 440.0)
+2026-02-16 21:19:01,047 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:19:01,053 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=4) at (1272.0, 490.0)
+2026-02-16 21:19:01,056 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:19:01,060 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=0) at (1061.5, 563.0)
+2026-02-16 21:19:01,064 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:19:01,073 - WARNING - [Fallback] Mismatch. Using Rigid Grid.

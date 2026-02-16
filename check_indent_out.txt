@@ -1,0 +1,31 @@
+--- Around Line 303 ---
+Line 299: '    # Case B: Standard Rigid Grid Mapping (Fallback)\n'
+Line 300: '    grid_marks = [0] * total_cells\n'
+Line 301: '    \n'
+Line 302: '    for item in found_marks:\n'
+Line 303: "        val = item['val']\n"
+Line 304: "        cx = item['x']\n"
+Line 305: "        cy = item['y']\n"
+Line 306: '        \n'
+Line 307: '        r = int(cy // row_height)\n'
+Line 308: '        c = int(cx // col_width)\n'
+
+--- Around Line 622 ---
+Line 619: '    col_width = w / cols\n'
+Line 620: '\n'
+Line 621: '    for item in found_marks:\n'
+Line 622: "        val = item['val']\n"
+Line 623: "        cx = item['x']\n"
+Line 624: "        cy = item['y']\n"
+Line 625: '        \n'
+Line 626: '        r = int(cy // row_height)\n'
+Line 627: '        c = int(cx // col_width)\n'
+Line 628: '        \n'
+
+--- Around Line 318 ---
+Line 316: '    return grid_marks\n'
+Line 317: '\n'
+Line 318: 'def _smart_grid_cluster(candidates: List[dict], rows: int, cols: int, img_h: int, img_w: int) -> List[int]:\n'
+Line 319: '    """\n'
+Line 320: "    Robustly maps a list of candidate points {'val', 'x', 'y'} to a grid.\n"
+Line 321: '    Handles cases where len(candidates) >= rows * cols (noise, labels).\n'
