@@ -433,3 +433,108 @@
 2026-02-16 21:19:01,064 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
 2026-02-16 21:19:01,070 - INFO - [Fallback] Found 17 candidates. Expected: 9
 2026-02-16 21:19:01,073 - WARNING - [Fallback] Mismatch. Using Rigid Grid.
+2026-02-16 21:44:20,432 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:44:32,278 - ERROR - Google Vision API failed: Google Cloud Credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS in your .env file to the path of your JSON key file.
+2026-02-16 21:44:32,283 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:44:32,349 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:44:33,392 - INFO - [Fallback-Debug] Tesseract found 69 potential text blocks.
+2026-02-16 21:44:33,396 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=0) at (613.5, 14.5)
+2026-02-16 21:44:33,400 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=18) at (1157.0, 9.0)
+2026-02-16 21:44:33,402 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (838.0, 27.0)
+2026-02-16 21:44:33,404 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:44:33,408 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:44:33,416 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (1000.0, 122.0)
+2026-02-16 21:44:33,420 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:44:33,422 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=43) at (76.5, 243.0)
+2026-02-16 21:44:33,425 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:44:33,430 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:44:33,433 - INFO - [Fallback-Debug] Found Candidate: 1 (raw='1', conf=0) at (1093.0, 378.5)
+2026-02-16 21:44:33,437 - INFO - [Fallback-Debug] Found Candidate: 9 (raw='9-', conf=73) at (623.0, 376.0)
+2026-02-16 21:44:33,439 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3.', conf=50) at (508.0, 386.5)
+2026-02-16 21:44:33,441 - INFO - [Fallback-Debug] Found Candidate: 34 (raw='34', conf=16) at (11.5, 553.0)
+2026-02-16 21:44:33,444 - INFO - [Fallback-Debug] Found Candidate: 3 (raw='3.', conf=5) at (1250.0, 626.0)
+2026-02-16 21:44:33,448 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:44:33,451 - INFO - [Fallback-Debug] Ignored non-digit: '..' (conf=0)
+2026-02-16 21:44:33,454 - INFO - [Fallback] Found 10 candidates. Expected: 9
+2026-02-16 21:44:33,455 - INFO - [Fallback] Sufficient candidates found. Using Smart Clustering.
+2026-02-16 21:44:33,457 - INFO - Smart Clustering: 10 candidates for 3x3 grid
+2026-02-16 21:44:33,460 - INFO -   -> Found 6 vertical clusters (rows). Expected 3.
+2026-02-16 21:44:33,464 - DEBUG -     -> Mapped val 7 to [0,1]
+2026-02-16 21:44:33,468 - DEBUG -     -> Mapped val 4 to [0,1]
+2026-02-16 21:44:33,469 - DEBUG -     -> Mapped val 7 to [0,2]
+2026-02-16 21:44:33,471 - DEBUG -     -> Mapped val 4 to [1,2]
+2026-02-16 21:44:33,473 - DEBUG -     -> Mapped val 9 to [2,1]
+2026-02-16 21:44:33,476 - DEBUG -     -> Mapped val 1 to [2,2]
+2026-02-16 21:47:00,626 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:47:12,487 - ERROR - Google Vision API failed: Google Cloud Credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS in your .env file to the path of your JSON key file.
+2026-02-16 21:47:12,491 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:47:12,540 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:47:13,230 - INFO - [Fallback-Debug] Tesseract found 25 potential text blocks.
+2026-02-16 21:47:13,233 - INFO - [Fallback-Debug] Found Candidate: 1 (raw='1', conf=14) at (1154.0, 255.5)
+2026-02-16 21:47:13,234 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=10) at (220.5, 366.0)
+2026-02-16 21:47:13,235 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=47) at (152.0, 498.5)
+2026-02-16 21:47:13,237 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:47:13,238 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (126.0, 688.5)
+2026-02-16 21:47:13,239 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:47:13,240 - INFO - [Fallback] Found 4 candidates. Expected: 9
+2026-02-16 21:47:13,241 - WARNING - [Fallback] Mismatch or Clustering Failed. Using Rigid Grid.
+2026-02-16 21:47:29,007 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:47:41,171 - ERROR - Google Vision API failed: Google Cloud Credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS in your .env file to the path of your JSON key file.
+2026-02-16 21:47:41,176 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:47:41,223 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:47:41,746 - INFO - [Fallback-Debug] Tesseract found 25 potential text blocks.
+2026-02-16 21:47:41,747 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (196.0, 72.5)
+2026-02-16 21:47:41,749 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=93) at (814.0, 244.0)
+2026-02-16 21:47:41,751 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:47:41,752 - INFO - [Fallback-Debug] Found Candidate: 0 (raw='0-', conf=0) at (927.5, 451.0)
+2026-02-16 21:47:41,754 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:47:41,756 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=12) at (91.5, 491.0)
+2026-02-16 21:47:41,758 - INFO - [Fallback] Found 4 candidates. Expected: 9
+2026-02-16 21:47:41,760 - WARNING - [Fallback] Mismatch or Clustering Failed. Using Rigid Grid.
+2026-02-16 21:48:56,294 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:49:08,434 - ERROR - Google Vision API failed: Google Cloud Credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS in your .env file to the path of your JSON key file.
+2026-02-16 21:49:08,439 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:49:08,489 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:49:09,379 - INFO - [Fallback-Debug] Tesseract found 69 potential text blocks.
+2026-02-16 21:49:09,384 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=19) at (499.5, 4.0)
+2026-02-16 21:49:09,388 - INFO - [Fallback-Debug] Found Candidate: 6 (raw='6', conf=0) at (91.0, 35.5)
+2026-02-16 21:49:09,393 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2.', conf=38) at (682.0, 120.0)
+2026-02-16 21:49:09,398 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=0) at (702.5, 141.0)
+2026-02-16 21:49:09,403 - INFO - [Fallback-Debug] Found Candidate: 7 (raw='7', conf=0) at (1155.0, 256.0)
+2026-02-16 21:49:09,409 - INFO - [Fallback-Debug] Found Candidate: 2 (raw='2', conf=22) at (542.0, 310.0)
+2026-02-16 21:49:09,415 - INFO - [Fallback-Debug] Found Candidate: 8 (raw='8', conf=0) at (322.0, 317.5)
+2026-02-16 21:49:09,418 - INFO - [Fallback-Debug] Ignored non-digit: '..' (conf=0)
+2026-02-16 21:49:09,420 - INFO - [Fallback-Debug] Found Candidate: 8 (raw='8', conf=0) at (908.5, 490.0)
+2026-02-16 21:49:09,425 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:49:09,428 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:49:09,431 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=39) at (460.0, 576.5)
+2026-02-16 21:49:09,433 - INFO - [Fallback-Debug] Ignored non-digit: '-' (conf=0)
+2026-02-16 21:49:09,443 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:49:09,451 - INFO - [Fallback-Debug] Found Candidate: 1 (raw='1', conf=0) at (172.5, 709.5)
+2026-02-16 21:49:09,464 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:49:09,466 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:49:09,475 - INFO - [Fallback] Found 10 candidates. Expected: 9
+2026-02-16 21:49:09,481 - INFO - [Fallback] Sufficient candidates found. Using Smart Clustering.
+2026-02-16 21:49:09,487 - INFO - Smart Clustering: 10 candidates for 3x3 grid
+2026-02-16 21:49:09,494 - INFO -   -> Found 6 vertical clusters (rows). Expected 3.
+2026-02-16 21:49:09,498 - DEBUG -     -> Mapped val 6 to [0,0]
+2026-02-16 21:49:09,503 - DEBUG -     -> Mapped val 4 to [0,1]
+2026-02-16 21:49:09,511 - DEBUG -     -> Mapped val 4 to [1,1]
+2026-02-16 21:49:09,517 - DEBUG -     -> Mapped val 8 to [2,0]
+2026-02-16 21:49:09,524 - DEBUG -     -> Mapped val 2 to [2,1]
+2026-02-16 21:49:09,529 - DEBUG -     -> Mapped val 7 to [2,2]
+2026-02-16 21:53:04,828 - INFO - Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:53:16,947 - ERROR - Google Vision API failed: Google Cloud Credentials not found. Please set GOOGLE_APPLICATION_CREDENTIALS in your .env file to the path of your JSON key file.
+2026-02-16 21:53:16,949 - INFO - [Fallback] Processing image: 1280x720, Rows=3, Cols=3
+2026-02-16 21:53:16,969 - INFO - [Fallback-Debug] Running Tesseract with config: --oem 3 --psm 11 outputbase digits
+2026-02-16 21:53:17,590 - INFO - [Fallback-Debug] Tesseract found 29 potential text blocks.
+2026-02-16 21:53:17,590 - INFO - [Fallback-Debug] Found Candidate: 5 (raw='5', conf=16) at (1109.0, 165.5)
+2026-02-16 21:53:17,591 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='.4', conf=0) at (1240.0, 338.5)
+2026-02-16 21:53:17,591 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:53:17,592 - INFO - [Fallback-Debug] Found Candidate: 4 (raw='4', conf=35) at (865.0, 575.0)
+2026-02-16 21:53:17,592 - INFO - [Fallback-Debug] Found Candidate: 558 (raw='558', conf=0) at (137.5, 607.0)
+2026-02-16 21:53:17,592 - INFO - [Fallback-Debug] Splitting merged: 558
+2026-02-16 21:53:17,592 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:53:17,593 - INFO - [Fallback-Debug] Ignored non-digit: '.' (conf=0)
+2026-02-16 21:53:17,593 - INFO - [Fallback] Found 6 candidates. Expected: 9
+2026-02-16 21:53:17,594 - WARNING - [Fallback] Mismatch or Clustering Failed. Using Rigid Grid.
