@@ -286,15 +286,17 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
     total_cells = rows * cols
     logger.info(f"Total candidates found: {len(found_marks)}. Expected: {total_cells}")
     
-    if len(found_marks) >= total_cells:
-        logger.info("Sufficient candidates found. Using Smart Clustering.")
+    # NEW STRATEGY: Content-Based Grid Inference
+    # Instead of assuming the grid fills the image, we infer the grid bounds from the detected Marks.
+    if len(found_marks) >= 3: # Need at least a few points to infer a grid
+        logger.info("Attempting to infer grid from available points.")
         try:
-            return _smart_grid_cluster(found_marks, rows, cols, h, w)
+             return _infer_grid_from_candidates(found_marks, rows, cols)
         except Exception as e:
-            logger.error(f"Smart Clustering failed: {e}")
+             logger.error(f"Inferred Grid Mapping failed: {e}")
 
-    logger.warning("Mismatch or Clustering Failed. Falling back to Rigid Grid.")
-    logger.debug(f"[DEBUG] Mismatch (Found {len(found_marks)} vs Expected {total_cells}). Fallback to Rigid Grid.")
+    logger.warning("Fallback to Basic Rigid Grid (Image-Based).")
+    logger.debug(f"[DEBUG] Only {len(found_marks)} marks found vs {total_cells} expected. Using Rigid Fallback.")
     
     # Case B: Standard Rigid Grid Mapping (Fallback)
     grid_marks = [0] * total_cells
@@ -313,6 +315,72 @@ def extract_grid_marks(image_b64: str, rows: int = 4, cols: int = 2) -> List[int
             idx = r * cols + c
             grid_marks[idx] = val
 
+    return grid_marks
+
+def _infer_grid_from_candidates(candidates: List[dict], rows: int, cols: int) -> List[int]:
+    """
+    Infers the grid structure based on the bounding box of the detected numbers.
+    """
+    if not candidates:
+        return [0] * (rows * cols)
+
+    # 1. Determine Bounding Box of Content
+    min_x = min(c['x'] for c in candidates)
+    max_x = max(c['x'] for c in candidates)
+    min_y = min(c['y'] for c in candidates)
+    max_y = max(c['y'] for c in candidates)
+    
+    width = max_x - min_x
+    height = max_y - min_y
+    
+    # Avoid zero division
+    if width < 10: width = 100
+    if height < 10: height = 100
+    
+    # Expand bounds slightly to cover proper cell area
+    # (min_x, min_y) is usually the center of the top-left digit.
+    # We want top-left of the GRID.
+    # Approx cell size
+    avg_cell_h = height / max(1, (rows - 1))
+    avg_cell_w = width / max(1, (cols - 1))
+    
+    start_x = min_x - (avg_cell_w / 2)
+    start_y = min_y - (avg_cell_h / 2)
+    end_x = max_x + (avg_cell_w / 2)
+    end_y = max_y + (avg_cell_h / 2)
+    
+    eff_w = end_x - start_x
+    eff_h = end_y - start_y
+    
+    logger.debug(f"Inferred Grid Bounds: x={start_x:.1f}-{end_x:.1f}, y={start_y:.1f}-{end_y:.1f}")
+    
+    grid_marks = [0] * (rows * cols)
+    
+    for item in candidates:
+        # Normalize to 0-1 within the effective grid
+        rel_x = (item['x'] - start_x) / eff_w
+        rel_y = (item['y'] - start_y) / eff_h
+        
+        # Clamp
+        rel_x = max(0, min(1, rel_x))
+        rel_y = max(0, min(1, rel_y))
+        
+        # Map to index
+        c = int(rel_x * cols)
+        r = int(rel_y * rows)
+        
+        # Edge case
+        if c >= cols: c = cols - 1
+        if r >= rows: r = rows - 1
+        
+        idx = r * cols + c
+        
+        if grid_marks[idx] == 0:
+            grid_marks[idx] = item['val']
+        else:
+            # Overwrite collision
+            grid_marks[idx] = item['val']
+            
     return grid_marks
 
 def _smart_grid_cluster(candidates: List[dict], rows: int, cols: int, img_h: int, img_w: int) -> List[int]:
@@ -593,10 +661,10 @@ def _extract_grid_marks_fallback(image: np.ndarray, rows: int = 4, cols: int = 2
     if len(found_marks) >= total_cells:
         logger.info("[Fallback] Sufficient candidates found. Using Smart Clustering.")
         try:
-            return _smart_grid_cluster(found_marks, rows, cols, h, w)
+             return _smart_grid_cluster(found_marks, rows, cols, h, w)
         except Exception as e:
-            logger.error(f"Smart Clustering failed: {e}")
-            # Fall through to rigid grid
+             logger.error(f"Smart Clustering failed: {e}")
+             # Fall through to rigid grid
     
     # Case B: Rigid Fallback
     logger.warning("[Fallback] Mismatch or Clustering Failed. Using Rigid Grid.")
@@ -653,4 +721,3 @@ def append_marks_to_excel(
     wb.save(out_buffer)
     out_buffer.seek(0)
     return total, out_buffer.getvalue()
-
